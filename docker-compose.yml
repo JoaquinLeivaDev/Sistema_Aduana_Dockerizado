@@ -1,0 +1,70 @@
+services:
+  eureka-server:
+    build: ./aduana-eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - aduana-network
+
+  aduana-api:
+    build: ./aduana-api
+    container_name: aduana-api
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+    volumes:
+      - ./Wallet_clases:/app/wallet
+    depends_on:
+      - eureka-server
+    networks:
+      - aduana-network
+
+  aduana-usuarios-api:
+    build: ./aduana-usuarios-api
+    container_name: aduana-usuarios-api
+    ports:
+      - "8082:8082"
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+    volumes:
+      - ./Wallet_clases:/app/wallet
+    depends_on:
+      - eureka-server
+    networks:
+      - aduana-network
+
+  aduana-reportes-api:
+    build: ./aduana-reportes-api
+    container_name: aduana-reportes-api
+    ports:
+      - "8081:8081"
+    environment:
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+    networks:
+      - aduana-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8090:8090"
+    environment:
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+    networks:
+      - aduana-network
+
+networks:
+  aduana-network:
+    driver: bridge

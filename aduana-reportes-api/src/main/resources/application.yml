@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: aduana-reportes-api
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+server:
+  port: ${PORT:8081}
+
+aduana:
+  api:
+    url: ${ADUANA_API_URL:http://localhost:8080}
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/

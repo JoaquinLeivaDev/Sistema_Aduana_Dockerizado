@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+
+  aduana-api:
+    build:
+      context: ./aduana-api
+    container_name: aduana-api
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    networks:
+      - aduana-network
+
+  aduana-reportes-api:
+    build:
+      context: ./aduana-reportes-api
+    container_name: aduana-reportes-api
+    ports:
+      - "8081:8081"
+    environment:
+      - ADUANA_API_URL=http://aduana-api:8080
+      - PORT=8081
+    depends_on:
+      - aduana-api
+    networks:
+      - aduana-network
+
+  aduana-usuarios-api:
+    build:
+      context: ./aduana-usuarios-api
+    container_name: aduana-usuarios-api
+    ports:
+      - "8082:8082"
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REPORTES_API_URL=http://aduana-reportes-api:8081
+      - SPRING_PROFILES_ACTIVE=prod
+      - PORT=8082
+    depends_on:
+      - aduana-api
+      - aduana-reportes-api
+    networks:
+      - aduana-network
+
+networks:
+  aduana-network:
+    driver: bridge

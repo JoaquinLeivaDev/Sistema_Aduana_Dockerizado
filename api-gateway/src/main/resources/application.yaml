@@ -1,0 +1,40 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        - id: aduana-api
+          uri: http://aduana-api:8080
+          predicates:
+            - Path=/aduana/**
+          filters:
+            - RewritePath=/aduana/(?<remaining>.*), /${remaining}
+        - id: usuarios-api
+          uri: http://aduana-usuarios-api:8082
+          predicates:
+            - Path=/usuarios/**
+          filters:
+            - RewritePath=/usuarios/(?<remaining>.*), /${remaining}
+        - id: reportes-api
+          uri: http://aduana-reportes-api:8081
+          predicates:
+            - Path=/reportes/**
+          filters:
+            - RewritePath=/reportes/(?<remaining>.*), /${remaining}
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://eureka-server:8761/eureka/}
