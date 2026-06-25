@@ -30,6 +30,13 @@ spring:
             - Path=/reportes/**
           filters:
             - RewritePath=/reportes/(?<remaining>.*), /${remaining}
+          #RUTA NUEVA CREADA
+        - id: documentos-api
+          uri: http://aduana-api:8080
+          predicates:
+              - Path=/documentos/**
+          filters:
+              - RewritePath=/documentos/(?<remaining>.*), /api/v1/documentos/${remaining}
 
 eureka:
   instance:
