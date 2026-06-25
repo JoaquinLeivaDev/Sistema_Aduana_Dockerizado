@@ -26,7 +26,7 @@ class UsuarioServiceTest {
 
     @Test
     void testBuscarUsuarioPorId_Existente() {
-        // 1. Preparar datos
+        // 1. Arrange
         Usuario usuario = new Usuario();
         usuario.setId(1L);
         usuario.setUsername("testuser");
@@ -34,17 +34,14 @@ class UsuarioServiceTest {
         rol.setNombre("ADMIN");
         usuario.setRol(rol);
 
-        // 2. Mockear el repositorio
+        // 2. Act
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
-
-        // 3. Ejecutar el servicio
         UsuarioResponseDTO resultado = usuarioService.buscarPorId(1L);
 
-        // 4. Verificar
+        // 3. Assert
         assertNotNull(resultado);
         assertEquals("testuser", resultado.getUsername());
         assertEquals("ADMIN", resultado.getNombreRol());
-
         verify(usuarioRepository, times(1)).findById(1L);
     }
 }
