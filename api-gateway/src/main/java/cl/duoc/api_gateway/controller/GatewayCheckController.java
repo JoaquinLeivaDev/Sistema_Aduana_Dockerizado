@@ -9,6 +9,6 @@ public class GatewayCheckController {
     // Endpoint para verificar que el Gateway está arriba
     @GetMapping("/gateway/check")
     public String check() {
-        return "Gateway is up and running!";
+        return "Gateway esta corriendo :D!";
     }
 }
