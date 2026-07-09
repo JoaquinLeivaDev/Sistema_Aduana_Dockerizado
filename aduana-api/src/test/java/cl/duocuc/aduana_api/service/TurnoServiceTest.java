@@ -79,11 +79,14 @@ class TurnoServiceTest {
 
     @Test
     void buscarPorId_cuandoNoExiste_debeLanzarTurnoNotFoundException() {
-        when(turnoRepository.findById(99L)).thenReturn(Optional.empty());
+        Long idInexistente = 99L;
+        when(turnoRepository.findById(idInexistente)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> turnoService.buscarPorId(99L))
+        assertThatThrownBy(() -> turnoService.buscarPorId(idInexistente))
                 .isInstanceOf(TurnoNotFoundException.class)
                 .hasMessageContaining("99");
+
+        verify(turnoRepository).findById(idInexistente);
     }
 
     @Test
