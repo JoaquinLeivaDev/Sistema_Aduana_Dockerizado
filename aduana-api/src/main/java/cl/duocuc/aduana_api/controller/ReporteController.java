@@ -34,14 +34,28 @@ public class ReporteController {
         return ResponseEntity.ok(ApiResponse.ok(service.obtenerTodos(), "Reportes obtenidos"));
     }
 
-    @Operation(summary = "Buscar reporte por ID")
+    @Operation(
+            summary = "Obtiene un reporte por ID",
+            description = "Permite consultar la información de un reporte registrado mediante su identificador único."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Reporte obtenido correctamente"
+    )
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ReporteResponseDTO>> buscarPorId(@PathVariable Long id) {
         log.info("GET /api/v1/reportes/{}", id);
         return ResponseEntity.ok(ApiResponse.ok(service.buscarPorId(id), "Reporte encontrado"));
     }
 
-    @Operation(summary = "Buscar reportes por usuario")
+    @Operation(
+            summary = "Obtiene reportes por usuario",
+            description = "Permite consultar todos los reportes asociados a un usuario mediante su identificador."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Reportes del usuario obtenidos correctamente"
+    )
     @GetMapping("/usuario/{idUsuario}")
     public ResponseEntity<ApiResponse<List<ReporteResponseDTO>>> buscarPorUsuario(
             @PathVariable Long idUsuario) {
