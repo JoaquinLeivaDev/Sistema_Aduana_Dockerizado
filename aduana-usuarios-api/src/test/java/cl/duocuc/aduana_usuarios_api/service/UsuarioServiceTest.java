@@ -194,16 +194,21 @@ class UsuarioServiceTest {
     // ─── buscarPorId ──────────────────────────────────────────────────────────
 
     @Test
-    void buscarPorId_ShouldReturnUsuario_WhenExists() {
-        // Given
+    void buscarPorId_ShouldReturnUsuario_UsandoMockitoSinSpringBootTest() {
+        // Given: se configura el comportamiento del mock
         when(usuarioRepository.findById(10L)).thenReturn(Optional.of(usuarioJLeiva()));
 
-        // When
+        // When: se ejecuta el método del service
         UsuarioResponseDTO resultado = usuarioService.buscarPorId(10L);
 
-        // Then
+        // Then: se valida el resultado
         assertNotNull(resultado);
+        assertEquals(10L, resultado.getId());
         assertEquals("jleiva", resultado.getUsername());
+        assertEquals("ADMIN", resultado.getRolNombre());
+
+        // Se verifica que el repository mockeado fue utilizado
+        verify(usuarioRepository, times(1)).findById(10L);
     }
 
     @Test
