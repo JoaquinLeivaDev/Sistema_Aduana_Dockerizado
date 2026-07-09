@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Tag(name = "Reportes", description = "Endpoints para la gestión de reportes")
 @RestController
 @RequestMapping("/api/v1/reportes")
 @Tag(name = "Reportes Aduana", description = "Gestion de reportes operativos generados desde el modulo principal")
@@ -36,6 +37,7 @@ public class ReporteController {
         this.service = service;
     }
 
+    @Operation(summary = "Listar todos los reportes")
     @GetMapping
     @Operation(summary = "Listar reportes", description = "Obtiene todos los reportes registrados en el sistema.")
     @ApiResponses(value = {
@@ -47,6 +49,7 @@ public class ReporteController {
         return ResponseEntity.ok(ApiResponse.ok(service.obtenerTodos(), "Reportes obtenidos"));
     }
 
+    @Operation(summary = "Buscar reporte por ID")
     @GetMapping("/{id}")
     @Operation(summary = "Buscar reporte por id", description = "Recupera un reporte especifico usando su identificador.")
     @ApiResponses(value = {
@@ -61,6 +64,7 @@ public class ReporteController {
         return ResponseEntity.ok(ApiResponse.ok(service.buscarPorId(id), "Reporte encontrado"));
     }
 
+    @Operation(summary = "Buscar reportes por usuario")
     @GetMapping("/usuario/{idUsuario}")
     @Operation(summary = "Buscar reportes por usuario", description = "Lista los reportes creados o asociados a un usuario.")
     @ApiResponses(value = {
@@ -76,6 +80,7 @@ public class ReporteController {
                 service.obtenerPorUsuario(idUsuario), "Reportes del usuario obtenidos"));
     }
 
+    @Operation(summary = "Buscar reportes por tipo")
     @GetMapping("/tipo/{tipo}")
     @Operation(summary = "Buscar reportes por tipo", description = "Filtra los reportes segun el tipo indicado.")
     @ApiResponses(value = {
@@ -91,6 +96,7 @@ public class ReporteController {
                 service.obtenerPorTipo(tipo), "Reportes por tipo obtenidos"));
     }
 
+    @Operation(summary = "Registrar un nuevo reporte")
     @PostMapping
     @Operation(summary = "Registrar reporte", description = "Crea un nuevo reporte operativo dentro del sistema.")
     @ApiResponses(value = {
@@ -109,6 +115,7 @@ public class ReporteController {
                 .body(ApiResponse.ok(service.registrar(dto), "Reporte registrado"));
     }
 
+    @Operation(summary = "Eliminar reporte")
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar reporte", description = "Elimina un reporte registrado por su identificador.")
     @ApiResponses(value = {
