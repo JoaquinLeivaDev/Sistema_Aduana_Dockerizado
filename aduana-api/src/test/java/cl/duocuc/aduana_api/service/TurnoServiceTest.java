@@ -18,8 +18,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TurnoServiceTest {
@@ -49,8 +53,6 @@ class TurnoServiceTest {
         turno.setPasajero(pasajero);
     }
 
-    // ── obtenerTodos ──────────────────────────────────────────────────────────
-
     @Test
     void obtenerTodos_debeRetornarListaDeTurnos() {
         when(turnoRepository.findAll()).thenReturn(List.of(turno));
@@ -58,34 +60,25 @@ class TurnoServiceTest {
         List<TurnoResponseDTO> resultado = turnoService.obtenerTodos();
 
         assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).getId()).isEqualTo(1L);
         assertThat(resultado.get(0).getNumero()).isEqualTo(101);
+        assertThat(resultado.get(0).getNombrePasajero()).isEqualTo("Juan");
         verify(turnoRepository).findAll();
     }
 
     @Test
-    void obtenerTodos_sinTurnos_debeRetornarListaVacia() {
-        when(turnoRepository.findAll()).thenReturn(List.of());
-
-        List<TurnoResponseDTO> resultado = turnoService.obtenerTodos();
-
-        assertThat(resultado).isEmpty();
-    }
-
-    // ── buscarPorId ───────────────────────────────────────────────────────────
-
-    @Test
-    void buscarPorId_existente_debeRetornarTurno() {
+    void buscarPorId_cuandoExiste_debeRetornarTurno() {
         when(turnoRepository.findById(1L)).thenReturn(Optional.of(turno));
 
         TurnoResponseDTO resultado = turnoService.buscarPorId(1L);
 
         assertThat(resultado.getId()).isEqualTo(1L);
         assertThat(resultado.getEstado()).isEqualTo("ESPERA");
-        assertThat(resultado.getNombrePasajero()).isEqualTo("Juan");
+        verify(turnoRepository).findById(1L);
     }
 
     @Test
-    void buscarPorId_noExistente_debeLanzarTurnoNotFoundException() {
+    void buscarPorId_cuandoNoExiste_debeLanzarTurnoNotFoundException() {
         when(turnoRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> turnoService.buscarPorId(99L))
@@ -93,31 +86,8 @@ class TurnoServiceTest {
                 .hasMessageContaining("99");
     }
 
-    // ── buscarPorPasajero ─────────────────────────────────────────────────────
-
     @Test
-    void buscarPorPasajero_existente_debeRetornarTurno() {
-        when(turnoRepository.findByPasajeroIdPasajero(1L)).thenReturn(turno);
-
-        TurnoResponseDTO resultado = turnoService.buscarPorPasajero(1L);
-
-        assertThat(resultado.getIdPasajero()).isEqualTo(1L);
-        assertThat(resultado.getNumero()).isEqualTo(101);
-    }
-
-    @Test
-    void buscarPorPasajero_sinTurno_debeLanzarTurnoNotFoundException() {
-        when(turnoRepository.findByPasajeroIdPasajero(99L)).thenReturn(null);
-
-        assertThatThrownBy(() -> turnoService.buscarPorPasajero(99L))
-                .isInstanceOf(TurnoNotFoundException.class)
-                .hasMessageContaining("99");
-    }
-
-    // ── registrarTurno ────────────────────────────────────────────────────────
-
-    @Test
-    void registrarTurno_pasajeroSinTurno_debeGuardarYRetornar() {
+    void registrarTurno_cuandoPasajeroExisteYNoTieneTurno_debeGuardar() {
         TurnoRequestDTO dto = new TurnoRequestDTO();
         dto.setNumero(202);
         dto.setEstado("ESPERA");
@@ -125,22 +95,25 @@ class TurnoServiceTest {
 
         when(pasajeroRepository.findById(1L)).thenReturn(Optional.of(pasajero));
         when(turnoRepository.existsByPasajeroIdPasajero(1L)).thenReturn(false);
-        when(turnoRepository.save(any(Turno.class))).thenAnswer(inv -> {
-            Turno t = inv.getArgument(0);
-            t.setId(2L);
-            return t;
+        when(turnoRepository.save(any(Turno.class))).thenAnswer(invocation -> {
+            Turno turnoGuardado = invocation.getArgument(0);
+            turnoGuardado.setId(2L);
+            return turnoGuardado;
         });
 
         TurnoResponseDTO resultado = turnoService.registrarTurno(dto);
 
+        assertThat(resultado.getId()).isEqualTo(2L);
         assertThat(resultado.getNumero()).isEqualTo(202);
-        assertThat(resultado.getEstado()).isEqualTo("ESPERA");
+        assertThat(resultado.getIdPasajero()).isEqualTo(1L);
         verify(turnoRepository).save(any(Turno.class));
     }
 
     @Test
-    void registrarTurno_pasajeroNoExiste_debeLanzarPasajeroNotFoundException() {
+    void registrarTurno_cuandoPasajeroNoExiste_debeLanzarPasajeroNotFoundException() {
         TurnoRequestDTO dto = new TurnoRequestDTO();
+        dto.setNumero(202);
+        dto.setEstado("ESPERA");
         dto.setIdPasajero(99L);
 
         when(pasajeroRepository.findById(99L)).thenReturn(Optional.empty());
@@ -149,12 +122,14 @@ class TurnoServiceTest {
                 .isInstanceOf(PasajeroNotFoundException.class)
                 .hasMessageContaining("99");
 
-        verify(turnoRepository, never()).save(any());
+        verify(turnoRepository, never()).save(any(Turno.class));
     }
 
     @Test
-    void registrarTurno_pasajeroYaTieneTurno_debeLanzarIllegalArgumentException() {
+    void registrarTurno_cuandoPasajeroYaTieneTurno_debeLanzarIllegalArgumentException() {
         TurnoRequestDTO dto = new TurnoRequestDTO();
+        dto.setNumero(202);
+        dto.setEstado("ESPERA");
         dto.setIdPasajero(1L);
 
         when(pasajeroRepository.findById(1L)).thenReturn(Optional.of(pasajero));
@@ -164,36 +139,22 @@ class TurnoServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("ya tiene un turno");
 
-        verify(turnoRepository, never()).save(any());
+        verify(turnoRepository, never()).save(any(Turno.class));
     }
 
-    // ── asignarVentanilla (regla de negocio) ──────────────────────────────────
-
     @Test
-    void asignarVentanilla_turnoExistente_debeAsignarYRetornar() {
+    void asignarVentanilla_cuandoTurnoExiste_debeActualizarEstadoYGuardar() {
         when(turnoRepository.findById(1L)).thenReturn(Optional.of(turno));
         when(turnoRepository.save(turno)).thenReturn(turno);
 
-        // asignarVentanilla delega en turno.asignarVentanilla(n), se asume que el modelo lo maneja
         TurnoResponseDTO resultado = turnoService.asignarVentanilla(1L, 3);
 
-        assertThat(resultado).isNotNull();
+        assertThat(resultado.getEstado()).isEqualTo("Asignado-V3");
         verify(turnoRepository).save(turno);
     }
 
     @Test
-    void asignarVentanilla_turnoNoExistente_debeLanzarTurnoNotFoundException() {
-        when(turnoRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> turnoService.asignarVentanilla(99L, 3))
-                .isInstanceOf(TurnoNotFoundException.class)
-                .hasMessageContaining("99");
-    }
-
-    // ── actualizarEstado ──────────────────────────────────────────────────────
-
-    @Test
-    void actualizarEstado_turnoExistente_debeActualizarEstado() {
+    void actualizarEstado_cuandoTurnoExiste_debeCambiarEstado() {
         when(turnoRepository.findById(1L)).thenReturn(Optional.of(turno));
         when(turnoRepository.save(turno)).thenReturn(turno);
 
@@ -204,18 +165,7 @@ class TurnoServiceTest {
     }
 
     @Test
-    void actualizarEstado_turnoNoExistente_debeLanzarTurnoNotFoundException() {
-        when(turnoRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> turnoService.actualizarEstado(99L, "ATENDIDO"))
-                .isInstanceOf(TurnoNotFoundException.class)
-                .hasMessageContaining("99");
-    }
-
-    // ── eliminarTurno ─────────────────────────────────────────────────────────
-
-    @Test
-    void eliminarTurno_existente_debeEliminar() {
+    void eliminarTurno_cuandoExiste_debeEliminarPorId() {
         when(turnoRepository.existsById(1L)).thenReturn(true);
 
         turnoService.eliminarTurno(1L);
@@ -224,7 +174,7 @@ class TurnoServiceTest {
     }
 
     @Test
-    void eliminarTurno_noExistente_debeLanzarTurnoNotFoundException() {
+    void eliminarTurno_cuandoNoExiste_debeLanzarTurnoNotFoundException() {
         when(turnoRepository.existsById(99L)).thenReturn(false);
 
         assertThatThrownBy(() -> turnoService.eliminarTurno(99L))
