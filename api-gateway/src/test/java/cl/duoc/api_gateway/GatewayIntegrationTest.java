@@ -19,6 +19,8 @@ public class GatewayIntegrationTest {
                 .uri("/gateway/check") // Probamos el endpoint que agregamos
                 .exchange()
                 .expectStatus().isOk() // Verificamos que responde 200
-                .expectBody(String.class).isEqualTo("Gateway esta corriendo :D!");
+                .expectBody()
+                .jsonPath("$.mensaje").isEqualTo("Gateway esta corriendo :D!")
+                .jsonPath("$.serviciosConfigurados").isEqualTo(4);
     }
 }
